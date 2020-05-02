@@ -472,7 +472,7 @@ main(void)
             //
             // Set button 1 if left pressed.
             //
-            if(~ui8Buttons & LEFT_BUTTON)
+            if(ui8Buttons & LEFT_BUTTON)
             {
                 sReport.ui8Buttons |= 0x01;
             }
@@ -480,7 +480,7 @@ main(void)
             //
             // Set button 2 if right pressed.
             //
-            if(~ui8Buttons & RIGHT_BUTTON)
+            if(ui8Buttons & RIGHT_BUTTON)
             {
                 sReport.ui8Buttons |= 0x02;
             }
