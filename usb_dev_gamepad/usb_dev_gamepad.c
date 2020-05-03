@@ -52,7 +52,22 @@
 //!
 //! This example application turns the evaluation board into USB game pad
 //! device using the Human Interface Device gamepad class.  The buttons on the
-//! board are reported as buttons 1 and 2.  The X, Y, and Z coordinates are
+//! board are reported as .
+//! A - PB1
+//! B - PB2
+//! X - PB1
+//! Y - PB1
+//! RB - PB1
+//! RT - PB1
+//! LB - PB1
+//! LT - PB1
+//! UP - PB1
+//! DOWN - PB1
+//! RIGHT - PB1
+//! LEFT - PB1
+//! Start - PB1
+//! A - PB1
+//! The X, Y, and Z coordinates are
 //! reported using the ADC input on GPIO port E pins 1, 2, and 3.  The X input
 //! is on PE3, the Y input is on PE2 and the Z input is on PE1.  These are
 //! not connected to any real input so the values simply read whatever is on
@@ -69,6 +84,16 @@
 //*****************************************************************************
 static tGamepadReport sReport;
 
+typedef struct
+{
+    uint16_t i16XPos;
+    uint16_t i16YPos;
+    uint16_t i16RXPos;
+    uint16_t i16RYPos;
+    uint16_t ui16Buttons;
+}
+PACKED tCustomReport;
+static tCustomReport sReportA;
 //*****************************************************************************
 //
 // The HID gamepad polled ADC data for the X/Y/Z coordinates.
@@ -434,7 +459,14 @@ main(void)
     sReport.i8XPos = 0;
     sReport.i8YPos = 0;
     sReport.i8ZPos = 0;
-
+    //
+    // Initialize the reports to 0.
+    //
+    sReportA.ui16Buttons = 0;
+    sReportA.i16XPos = 0;
+    sReportA.i16YPos = 0;
+    sReportA.i16RXPos = 0;
+    sReportA.i16YPos = 0;
     //
     // Tell the user what we are doing and provide some basic instructions.
     //
@@ -467,23 +499,49 @@ main(void)
             //
             ButtonsPoll(&ui8ButtonsChanged, &ui8Buttons);
 
-            sReport.ui8Buttons = 0;
+            sReportA.ui16Buttons = 0;
 
             //
             // Set button 1 if left pressed.
             //
-            if(ui8Buttons & LEFT_BUTTON)
+            if(ui8Buttons & A_BUTTON)
             {
-                sReport.ui8Buttons |= 0x01;
+                sReportA.ui16Buttons |= 0x01;
             }
 
             //
             // Set button 2 if right pressed.
             //
-            if(ui8Buttons & RIGHT_BUTTON)
+            if(ui8Buttons & B_BUTTON)
             {
-                sReport.ui8Buttons |= 0x02;
+                sReportA.ui16Buttons |= 0x02;
             }
+
+            if(ui8Buttons & X_BUTTON)
+            {
+                sReportA.ui16Buttons |= 0x04;
+            }
+            if(ui8Buttons & Y_BUTTON)
+            {
+                sReportA.ui16Buttons |= 0x08;
+            }
+            if(ui8Buttons & RB_BUTTON)
+            {
+                sReportA.ui16Buttons |= 0x10;
+            }
+            if(ui8Buttons & RT_BUTTON)
+            {
+                sReportA.ui16Buttons |= 0x20;
+            }
+            if(ui8Buttons & LB_BUTTON)
+            {
+                sReportA.ui16Buttons |= 0x40;
+            }
+            if(ui8Buttons & LT_BUTTON)
+            {
+                sReportA.ui16Buttons |= 0x80;
+            }
+
 
             if(ui8ButtonsChanged)
             {
@@ -509,9 +567,9 @@ main(void)
                 //
                 // Update the report.
                 //
-                sReport.i8XPos = Convert8Bit(g_pui32ADCData[0]);
-                sReport.i8YPos = Convert8Bit(g_pui32ADCData[1]);
-                sReport.i8ZPos = Convert8Bit(g_pui32ADCData[2]);
+                sReportA.i16XPos = Convert8Bit(g_pui32ADCData[0]);
+                sReportA.i16YPos = Convert8Bit(g_pui32ADCData[1]);
+                sReportA.i16RXPos = Convert8Bit(g_pui32ADCData[2]);
                 bUpdate = true;
             }
 
@@ -520,8 +578,8 @@ main(void)
             //
             if(bUpdate)
             {
-                USBDHIDGamepadSendReport(&g_sGamepadDevice, &sReport,
-                                         sizeof(sReport));
+                USBDHIDGamepadSendReport(&g_sGamepadDevice, &sReportA,
+                                         sizeof(sReportA));
 
                 //
                 // Now sending data but protect this from an interrupt since
