@@ -53,20 +53,20 @@
 //! This example application turns the evaluation board into USB game pad
 //! device using the Human Interface Device gamepad class.  The buttons on the
 //! board are reported as .
-//! A - PB1
-//! B - PB2
-//! X - PB1
-//! Y - PB1
-//! RB - PB1
-//! RT - PB1
-//! LB - PB1
-//! LT - PB1
-//! UP - PB1
-//! DOWN - PB1
-//! RIGHT - PB1
-//! LEFT - PB1
-//! Start - PB1
-//! A - PB1
+//! A - PB0
+//! B - PB1
+//! X - PB2
+//! Y - PB3
+//! RB - PB4
+//! RT - PB5
+//! LB - PB6
+//! LT - PB7
+//! UP - PC0
+//! DOWN - PC1
+//! RIGHT - PC2
+//! LEFT - PC3
+//! Start - PC4
+//!
 //! The X, Y, and Z coordinates are
 //! reported using the ADC input on GPIO port E pins 1, 2, and 3.  The X input
 //! is on PE3, the Y input is on PE2 and the Z input is on PE1.  These are
@@ -569,7 +569,6 @@ main(void)
                 //
                 sReportA.i16XPos = Convert8Bit(g_pui32ADCData[0]);
                 sReportA.i16YPos = Convert8Bit(g_pui32ADCData[1]);
-                sReportA.i16RXPos = Convert8Bit(g_pui32ADCData[2]);
                 bUpdate = true;
             }
 
