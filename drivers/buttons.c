@@ -49,7 +49,7 @@
 // pressed when the application starts, this will be detected).
 //
 //*****************************************************************************
-static uint8_t g_ui8ButtonStates = ALL_BUTTONS;
+static uint16_t g_ui16ButtonStates = ALL_BUTTONS;
 
 //*****************************************************************************
 //
@@ -80,61 +80,65 @@ static uint8_t g_ui8ButtonStates = ALL_BUTTONS;
 //! indicates that it is released.
 //
 //*****************************************************************************
-uint8_t
-ButtonsPoll(uint8_t *pui8Delta, uint8_t *pui8RawState)
+uint16_t
+ButtonsPoll(uint16_t *pui16Delta, uint16_t *pui16RawState)
 {
     uint32_t ui32Delta;
     uint32_t ui32Data;
-    static uint8_t ui8SwitchClockA = 0;
-    static uint8_t ui8SwitchClockB = 0;
+    static uint16_t ui16SwitchClockA = 0;
+    static uint16_t ui16SwitchClockB = 0;
 
     //
     // Read the raw state of the push buttons.  Save the raw state
     //  if the caller supplied storage for the
     // raw value.
     //
-    ui32Data = (ROM_GPIOPinRead(BUTTONS_GPIO_BASE, ALL_BUTTONS));
-    if(pui8RawState)
+    ui32Data  = ((ROM_GPIOPinRead(BUTTONS_GPIO_BASE1, ALL_BUTTONS1))<<6)|
+                (ROM_GPIOPinRead(BUTTONS_GPIO_BASE, ALL_BUTTONS));
+
+
+
+    if(pui16RawState)
     {
-        *pui8RawState = (uint8_t)ui32Data;
+        *pui16RawState =(uint16_t)ui32Data;
     }
 
     //
     // Determine the switches that are at a different state than the debounced
     // state.
     //
-    ui32Delta = ui32Data ^ g_ui8ButtonStates;
+    ui32Delta = ui32Data ^ g_ui16ButtonStates;
 
     //
     // Increment the clocks by one.
     //
-    ui8SwitchClockA ^= ui8SwitchClockB;
-    ui8SwitchClockB = ~ui8SwitchClockB; 
+    ui16SwitchClockA ^= ui16SwitchClockB;
+    ui16SwitchClockB = ~ui16SwitchClockB;
 
     //
     // Reset the clocks corresponding to switches that have not changed state.
     //
-    ui8SwitchClockA &= ui32Delta;
-    ui8SwitchClockB &= ui32Delta;
+    ui16SwitchClockA &= ui32Delta;
+    ui16SwitchClockB &= ui32Delta;
 
     //
     // Get the new debounced switch state.
     //
-    g_ui8ButtonStates &= ui8SwitchClockA | ui8SwitchClockB;
-    g_ui8ButtonStates |= (~(ui8SwitchClockA | ui8SwitchClockB)) & ui32Data;
+    g_ui16ButtonStates &= ui16SwitchClockA | ui16SwitchClockB;
+    g_ui16ButtonStates |= (~(ui16SwitchClockA | ui16SwitchClockB)) & ui32Data;
 
     //
     // Determine the switches that just changed debounced state.
     //
-    ui32Delta ^= (ui8SwitchClockA | ui8SwitchClockB);
+    ui32Delta ^= (ui16SwitchClockA | ui16SwitchClockB);
 
     //
     // Store the bit mask for the buttons that have changed for return to
     // caller.
     //
-    if(pui8Delta)
+    if(pui16Delta)
     {
-        *pui8Delta = (uint8_t)ui32Delta;
+        *pui16Delta = (uint16_t)ui32Delta;
     }
 
     //
@@ -142,7 +146,7 @@ ButtonsPoll(uint8_t *pui8Delta, uint8_t *pui8RawState)
     // sense so that a '1' indicates the button is pressed, which is a
     // sensible way to interpret the return value.
     //
-    return(~g_ui8ButtonStates);
+    return(~g_ui16ButtonStates);
 }
 
 //*****************************************************************************
@@ -164,15 +168,21 @@ ButtonsInit(void)
     // Enable the GPIO port to which the pushbuttons are connected.
     //
     ROM_SysCtlPeripheralEnable(BUTTONS_GPIO_PERIPH);
+    ROM_SysCtlPeripheralEnable(BUTTONS_GPIO_PERIPH1);
+
 
     //
-    // Unlock PF0 so we can change it to a GPIO input
+    // Unlock PB0 & PC0 so we can change it to a GPIO input
     // Once we have enabled (unlocked) the commit register then re-lock it
-    // to prevent further changes.  PF0 is muxed with NMI thus a special case.
+    // to prevent further changes.  PF0 & PC0 is muxed with NMI thus a special case.
     //
     HWREG(BUTTONS_GPIO_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
     HWREG(BUTTONS_GPIO_BASE + GPIO_O_CR) |= 0x01;
     HWREG(BUTTONS_GPIO_BASE + GPIO_O_LOCK) = 0;
+
+    HWREG(BUTTONS_GPIO_BASE1 + GPIO_O_LOCK) = GPIO_LOCK_KEY;
+    HWREG(BUTTONS_GPIO_BASE1 + GPIO_O_CR) |= 0x01;
+    HWREG(BUTTONS_GPIO_BASE1 + GPIO_O_LOCK) = 0;
 
     //
     // Set each of the button GPIO pins as an input with a pull-down.
@@ -181,11 +191,18 @@ ButtonsInit(void)
     MAP_GPIOPadConfigSet(BUTTONS_GPIO_BASE, ALL_BUTTONS,
                          GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD );
 
+    ROM_GPIODirModeSet(BUTTONS_GPIO_BASE1, ALL_BUTTONS1, GPIO_DIR_MODE_IN);
+    MAP_GPIOPadConfigSet(BUTTONS_GPIO_BASE1, ALL_BUTTONS1,
+                         GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD );
+
     //
     // Initialize the debounced button state with the current state read from
     // the GPIO bank.
     //
-    g_ui8ButtonStates = ROM_GPIOPinRead(BUTTONS_GPIO_BASE, ALL_BUTTONS);
+    g_ui16ButtonStates =  (ROM_GPIOPinRead(BUTTONS_GPIO_BASE1, ALL_BUTTONS1)<<8)|
+            ROM_GPIOPinRead(BUTTONS_GPIO_BASE, ALL_BUTTONS);
+
+
 }
 
 //*****************************************************************************
