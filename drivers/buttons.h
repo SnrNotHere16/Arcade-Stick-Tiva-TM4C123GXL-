@@ -52,17 +52,34 @@ extern "C"
 #define BUTTONS_GPIO_PERIPH     SYSCTL_PERIPH_GPIOB
 #define BUTTONS_GPIO_BASE       GPIO_PORTB_BASE
 
-#define NUM_BUTTONS             8
-#define A_BUTTON                GPIO_PIN_0
-#define B_BUTTON                GPIO_PIN_1
-#define X_BUTTON                GPIO_PIN_2
-#define Y_BUTTON                GPIO_PIN_3
-#define RB_BUTTON               GPIO_PIN_4
-#define RT_BUTTON               GPIO_PIN_5
-#define LB_BUTTON               GPIO_PIN_6
-#define LT_BUTTON               GPIO_PIN_7
+#define BUTTONS_GPIO_PERIPH1    SYSCTL_PERIPH_GPIOA
+#define BUTTONS_GPIO_BASE1      GPIO_PORTA_BASE
+/*
+#define BUTTONS_GPIO_PERIPH2    SYSCTL_PERIPH_GPIOC
+#define BUTTONS_GPIO_BASE2      GPIO_PORTC_BASE
+*/
 
-#define ALL_BUTTONS             (A_BUTTON | B_BUTTON | X_BUTTON | Y_BUTTON | RB_BUTTON | RT_BUTTON | LB_BUTTON | LT_BUTTON)
+
+#define NUM_BUTTONS            14
+#define BUTTON0                GPIO_PIN_0
+#define BUTTON1                GPIO_PIN_1
+#define BUTTON2                GPIO_PIN_2
+#define BUTTON3                GPIO_PIN_3
+#define BUTTON4                GPIO_PIN_4
+#define BUTTON5                GPIO_PIN_5
+#define BUTTON6                GPIO_PIN_6
+#define BUTTON7                GPIO_PIN_7
+
+#define BUTTON8                GPIO_PIN_2
+#define BUTTON9                GPIO_PIN_3
+#define BUTTON10               GPIO_PIN_4
+#define BUTTON11               GPIO_PIN_5
+#define BUTTON12               GPIO_PIN_6
+#define BUTTON13               GPIO_PIN_7
+
+
+#define ALL_BUTTONS             (BUTTON0 | BUTTON1 | BUTTON2 | BUTTON3 | BUTTON4 |BUTTON5 | BUTTON6 |BUTTON7)
+#define ALL_BUTTONS1            (BUTTON8 | BUTTON9 | BUTTON10 | BUTTON11 | BUTTON12 | BUTTON13)
 
 //*****************************************************************************
 //
@@ -92,8 +109,8 @@ extern "C"
 //
 //*****************************************************************************
 extern void ButtonsInit(void);
-extern uint8_t ButtonsPoll(uint8_t *pui8Delta,
-                             uint8_t *pui8Raw);
+extern uint16_t ButtonsPoll(uint16_t *pui16Delta,
+                             uint16_t *pui16Raw);
 
 //*****************************************************************************
 //
