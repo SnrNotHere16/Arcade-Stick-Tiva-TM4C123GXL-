@@ -53,19 +53,19 @@
 //! This example application turns the evaluation board into USB game pad
 //! device using the Human Interface Device gamepad class.  The buttons on the
 //! board are reported as .
-//! A - PB0
-//! B - PB1
-//! X - PB2
-//! Y - PB3
-//! RB - PB4
-//! RT - PB5
-//! LB - PB6
-//! LT - PB7
-//! UP - PC0
-//! DOWN - PC1
-//! RIGHT - PC2
-//! LEFT - PC3
-//! Start - PC4
+//! Button0 - PB0
+//! Button1 - PB1
+//! Button2 - PB2
+//! Button3 - PB3
+//! Button4 - PB4
+//! Button5 - PB5
+//! Button6 - PB6
+//! Button7 - PB7
+//! Button8 - PC0
+//! Button9 - PC1
+//! Button10 - PC2
+//! Button11 - PC3
+//! Button12 - PC4
 //!
 //! The X, Y, and Z coordinates are
 //! reported using the ADC input on GPIO port E pins 1, 2, and 3.  The X input
@@ -93,7 +93,6 @@ typedef struct
     uint16_t ui16Buttons;
 }
 PACKED tCustomReport;
-static tCustomReport sReportA;
 //*****************************************************************************
 //
 // The HID gamepad polled ADC data for the X/Y/Z coordinates.
@@ -101,12 +100,7 @@ static tCustomReport sReportA;
 //*****************************************************************************
 static uint32_t g_pui32ADCData[3];
 
-//*****************************************************************************
-//
-// An activity counter to slow the LED blink down to a visible rate.
-//
-//*****************************************************************************
-static uint32_t g_ui32Updates;
+
 
 //*****************************************************************************
 //
@@ -225,7 +219,7 @@ GamepadHandler(void *pvCBData, uint32_t ui32Event, uint32_t ui32MsgData,
             //
             g_iGamepadState = eStateIdle;
 
-            ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 0);
+            ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0);
 
             break;
         }
@@ -245,7 +239,7 @@ GamepadHandler(void *pvCBData, uint32_t ui32Event, uint32_t ui32MsgData,
             //
             UARTprintf("\nBus Suspended\n");
 
-            ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 0);
+            ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0);
 
             break;
         }
@@ -386,7 +380,19 @@ ADCInit(void)
 int
 main(void)
 {
-    uint8_t ui8ButtonsChanged, ui8Buttons;
+ //*****************************************************************************
+ //
+ // The HID gamepad report that is returned to the host.
+ //
+ //*****************************************************************************
+    static tCustomReport sReportA;
+//*****************************************************************************
+//
+// An activity counter to slow the LED blink down to a visible rate.
+//
+//*****************************************************************************
+    static uint32_t g_ui32Updates;
+    uint16_t ui16ButtonsChanged, ui16Buttons;
     bool bUpdate;
 
     //
@@ -403,7 +409,7 @@ main(void)
     //
     // Enable the GPIO pin for the Blue LED (PF2).
     //
-    ROM_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_2);
+    ROM_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_3);
 
     //
     // Open UART0 and show the application name on the UART.
@@ -497,53 +503,73 @@ main(void)
             //
             // See if the buttons updated.
             //
-            ButtonsPoll(&ui8ButtonsChanged, &ui8Buttons);
+            ButtonsPoll(&ui16ButtonsChanged, &ui16Buttons);
 
             sReportA.ui16Buttons = 0;
 
-            //
-            // Set button 1 if left pressed.
-            //
-            if(ui8Buttons & A_BUTTON)
+            if(ui16Buttons & BUTTON0)
             {
-                sReportA.ui16Buttons |= 0x01;
+                sReportA.ui16Buttons |= 0x0001;
             }
 
-            //
-            // Set button 2 if right pressed.
-            //
-            if(ui8Buttons & B_BUTTON)
+            if(ui16Buttons & BUTTON1)
             {
-                sReportA.ui16Buttons |= 0x02;
+                sReportA.ui16Buttons |= 0x0002;
             }
 
-            if(ui8Buttons & X_BUTTON)
+            if(ui16Buttons & BUTTON2)
             {
-                sReportA.ui16Buttons |= 0x04;
+                sReportA.ui16Buttons |= 0x0004;
             }
-            if(ui8Buttons & Y_BUTTON)
+            if(ui16Buttons & BUTTON3)
             {
-                sReportA.ui16Buttons |= 0x08;
+                sReportA.ui16Buttons |= 0x0008;
             }
-            if(ui8Buttons & RB_BUTTON)
+            if(ui16Buttons & BUTTON4)
             {
-                sReportA.ui16Buttons |= 0x10;
+                sReportA.ui16Buttons |= 0x0010;
             }
-            if(ui8Buttons & RT_BUTTON)
+            if(ui16Buttons & BUTTON5)
             {
-                sReportA.ui16Buttons |= 0x20;
+                sReportA.ui16Buttons |= 0x0020;
             }
-            if(ui8Buttons & LB_BUTTON)
+            if(ui16Buttons & BUTTON6)
             {
-                sReportA.ui16Buttons |= 0x40;
+                sReportA.ui16Buttons |= 0x0040;
             }
-            if(ui8Buttons & LT_BUTTON)
+            if(ui16Buttons & BUTTON7)
             {
-                sReportA.ui16Buttons |= 0x80;
+                sReportA.ui16Buttons |= 0x0080;
+            }
+
+            if( (ui16Buttons>>8) & 0x01) //0x10
+            {
+                sReportA.ui16Buttons |= 0x0100;
+            }
+
+            if((ui16Buttons>>8) & 0x02)
+            {
+                sReportA.ui16Buttons |= 0x0200;
+            }
+            if((ui16Buttons>>8) & 0x04)
+            {
+                sReportA.ui16Buttons |= 0x0400;
+            }
+            if((ui16Buttons>>8) & 0x08)
+            {
+                sReportA.ui16Buttons |= 0x0800;
+            }
+            if((ui16Buttons>>8) & 0x10)
+            {
+                sReportA.ui16Buttons |= 0x1000;
+            }
+            if((ui16Buttons>>8) & 0x20)
+            {
+                sReportA.ui16Buttons |= 0x2000;
             }
 
 
-            if(ui8ButtonsChanged)
+            if(ui16ButtonsChanged)
             {
                 bUpdate = true;
             }
@@ -596,7 +622,7 @@ main(void)
                     //
                     // Turn on the blue LED.
                     //
-                    ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, GPIO_PIN_2);
+                    ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
 
                     //
                     // Reset the update count.
